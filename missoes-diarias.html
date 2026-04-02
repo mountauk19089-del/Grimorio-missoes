@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grimório de Missões</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1410;
+    --parchment: #f5ead6;
+    --parchment-dark: #e8d5b0;
+    --parchment-shadow: #d4b882;
+    --gold: #c9954a;
+    --gold-light: #e8b96a;
+    --crimson: #8b2020;
+    --forest: #2d5a27;
+    --night: #0d0a06;
+    --mist: #a89878;
+    --seal: #6b3a2a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--night);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,240,200,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 10%, rgba(255,240,200,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 60%, rgba(255,240,200,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 80%, rgba(255,240,200,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 70%, rgba(255,240,200,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 35% 15%, rgba(255,240,200,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 65% 85%, rgba(255,240,200,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 55%, rgba(255,240,200,0.5) 0%, transparent 100%),
+      radial-gradient(2px 2px at 70% 40%, rgba(255,240,200,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 95%, rgba(255,240,200,0.4) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 480px;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 30px 20px 20px;
+    position: relative;
+  }
+
+  .header-ornament {
+    font-size: 24px;
+    color: var(--gold);
+    letter-spacing: 8px;
+    opacity: 0.7;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 28px;
+    color: var(--gold-light);
+    text-shadow: 0 0 30px rgba(201,149,74,0.4), 0 2px 4px rgba(0,0,0,0.8);
+    line-height: 1.2;
+    letter-spacing: 2px;
+  }
+
+  .subtitle {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    color: var(--mist);
+    font-size: 15px;
+    margin-top: 6px;
+    letter-spacing: 1px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .divider-gem {
+    width: 8px;
+    height: 8px;
+    background: var(--gold);
+    transform: rotate(45deg);
+    box-shadow: 0 0 8px var(--gold);
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    justify-content: space-around;
+    background: rgba(245,234,214,0.04);
+    border: 1px solid rgba(201,149,74,0.2);
+    border-radius: 4px;
+    padding: 12px;
+    backdrop-filter: blur(4px);
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-value {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 22px;
+    color: var(--gold-light);
+    display: block;
+    text-shadow: 0 0 15px rgba(201,149,74,0.5);
+  }
+
+  .stat-label {
+    font-family: 'IM Fell English', serif;
+    font-size: 11px;
+    color: var(--mist);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .stat-divider {
+    width: 1px;
+    background: rgba(201,149,74,0.3);
+    align-self: stretch;
+  }
+
+  /* MISSION CARD */
+  .mission-card {
+    position: relative;
+    background: linear-gradient(160deg, var(--parchment) 0%, var(--parchment-dark) 60%, #ddc898 100%);
+    border-radius: 4px;
+    padding: 28px 24px;
+    box-shadow:
+      0 0 0 1px var(--parchment-shadow),
+      0 0 0 3px rgba(201,149,74,0.3),
+      0 8px 32px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.3);
+    overflow: hidden;
+    animation: cardAppear 0.6s ease-out;
+  }
+
+  @keyframes cardAppear {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Parchment texture */
+  .mission-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(139,100,60,0.04) 28px, rgba(139,100,60,0.04) 29px);
+    pointer-events: none;
+  }
+
+  /* Worn edges */
+  .mission-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 0% 0%, rgba(139,100,60,0.15) 0%, transparent 40%),
+      radial-gradient(ellipse at 100% 100%, rgba(139,100,60,0.2) 0%, transparent 40%),
+      radial-gradient(ellipse at 100% 0%, rgba(139,100,60,0.1) 0%, transparent 30%);
+    pointer-events: none;
+    border-radius: 4px;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .mission-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    font-family: 'IM Fell English', serif;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .badge-solo {
+    color: var(--forest);
+    border-color: var(--forest);
+    background: rgba(45,90,39,0.08);
+  }
+
+  .badge-duo {
+    color: var(--crimson);
+    border-color: var(--crimson);
+    background: rgba(139,32,32,0.08);
+  }
+
+  .mission-difficulty {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+
+  .diff-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--parchment-shadow);
+  }
+
+  .diff-dot.filled {
+    background: var(--gold);
+    box-shadow: 0 0 4px var(--gold);
+  }
+
+  .mission-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 18px;
+    color: var(--ink);
+    line-height: 1.3;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .mission-quote {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--seal);
+    margin-bottom: 16px;
+    padding-left: 14px;
+    border-left: 2px solid var(--gold);
+    line-height: 1.5;
+    position: relative;
+    z-index: 1;
+  }
+
+  .mission-desc {
+    font-size: 15px;
+    color: #3a2a1a;
+    line-height: 1.7;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .mission-reward {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(201,149,74,0.1);
+    border: 1px dashed var(--gold);
+    border-radius: 2px;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 18px;
+  }
+
+  .reward-icon { font-size: 18px; }
+
+  .reward-text {
+    font-family: 'IM Fell English', serif;
+    font-size: 13px;
+    color: var(--seal);
+    font-style: italic;
+  }
+
+  .reward-xp {
+    margin-left: auto;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 12px;
+    color: var(--gold);
+  }
+
+  .card-seal {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+    z-index: 2;
+    opacity: 0.5;
+  }
+
+  .card-seal svg { width: 100%; height: 100%; }
+
+  /* ACTIONS */
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn {
+    position: relative;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 14px 24px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    overflow: hidden;
+  }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.2s;
+  }
+
+  .btn:hover::after { background: rgba(255,255,255,0.08); }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-complete {
+    background: linear-gradient(135deg, var(--forest), #3d7a35);
+    color: var(--parchment);
+    box-shadow: 0 4px 20px rgba(45,90,39,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+    border-radius: 3px;
+  }
+
+  .btn-complete:hover {
+    box-shadow: 0 4px 28px rgba(45,90,39,0.6), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  .btn-skip {
+    background: transparent;
+    color: var(--mist);
+    border: 1px solid rgba(168,152,120,0.3);
+    border-radius: 3px;
+    font-size: 11px;
+    padding: 10px 24px;
+  }
+
+  .btn-skip:hover { color: var(--parchment); border-color: var(--mist); }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-row .btn { flex: 1; }
+
+  /* HISTORY */
+  .history-section {
+    position: relative;
+  }
+
+  .section-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(201,149,74,0.4), transparent);
+  }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(245,234,214,0.04);
+    border: 1px solid rgba(201,149,74,0.1);
+    border-radius: 3px;
+    animation: slideIn 0.4s ease-out;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .history-icon {
+    font-size: 18px;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .history-info { flex: 1; min-width: 0; }
+
+  .history-name {
+    font-family: 'IM Fell English', serif;
+    font-size: 13px;
+    color: var(--parchment);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .history-date {
+    font-size: 11px;
+    color: var(--mist);
+    margin-top: 2px;
+  }
+
+  .history-xp {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 11px;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding-bottom: 20px;
+  }
+
+  .footer-text {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: rgba(168,152,120,0.5);
+    letter-spacing: 1px;
+  }
+
+  /* CELEBRATION OVERLAY */
+  .celebration {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.8);
+    animation: fadeIn 0.3s ease;
+    backdrop-filter: blur(4px);
+  }
+
+  .celebration.hidden { display: none; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .celebration-box {
+    background: linear-gradient(160deg, var(--parchment), var(--parchment-dark));
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 60px rgba(201,149,74,0.4);
+    border-radius: 6px;
+    padding: 40px 36px;
+    text-align: center;
+    max-width: 320px;
+    animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .celebration-icon { font-size: 52px; margin-bottom: 12px; }
+
+  .celebration-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 20px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .celebration-sub {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--seal);
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+
+  .celebration-xp {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 24px;
+    color: var(--gold);
+    margin: 12px 0;
+    text-shadow: 0 0 20px rgba(201,149,74,0.5);
+  }
+
+  .btn-continue {
+    background: var(--ink);
+    color: var(--gold-light);
+    border: 1px solid var(--gold);
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 12px 28px;
+    cursor: pointer;
+    margin-top: 8px;
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
+
+  .btn-continue:hover { background: rgba(201,149,74,0.1); }
+
+  /* Scroll */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(201,149,74,0.3); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <span class="header-ornament">✦ ✦ ✦</span>
+    <h1 class="title">Grimório<br>de Missões</h1>
+    <p class="subtitle">Uma aventura por dia, mil memórias por ano</p>
+    <div class="divider" style="margin-top:16px">
+      <div class="divider-line"></div>
+      <div class="divider-gem"></div>
+      <div class="divider-line"></div>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-value" id="stat-xp">0</span>
+      <span class="stat-label">Experiência</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-value" id="stat-done">0</span>
+      <span class="stat-label">Missões</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-value" id="stat-streak">0</span>
+      <span class="stat-label">Sequência</span>
+    </div>
+  </div>
+
+  <!-- MISSION CARD -->
+  <div class="mission-card" id="mission-card">
+    <div class="card-header">
+      <div class="mission-type-badge" id="mission-badge">solo</div>
+      <div class="mission-difficulty" id="mission-diff"></div>
+    </div>
+
+    <h2 class="mission-title" id="mission-title">—</h2>
+    <p class="mission-quote" id="mission-quote">—</p>
+    <p class="mission-desc" id="mission-desc">—</p>
+
+    <div class="mission-reward">
+      <span class="reward-icon" id="reward-icon">⭐</span>
+      <span class="reward-text" id="reward-text">—</span>
+      <span class="reward-xp" id="reward-xp">+0 XP</span>
+    </div>
+
+    <div class="card-seal">
+      <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="30,2 36,22 57,22 40,35 46,56 30,43 14,56 20,35 3,22 24,22" fill="none" stroke="#c9954a" stroke-width="1.5"/>
+        <circle cx="30" cy="30" r="8" fill="none" stroke="#c9954a" stroke-width="1"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn btn-complete" onclick="completeMission()">⚔ Missão Concluída</button>
+    <div class="btn-row">
+      <button class="btn btn-skip" onclick="newMission()">↻ Nova Missão</button>
+      <button class="btn btn-skip" onclick="toggleHistory()">📜 Histórico</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="history-section" id="history-section" style="display:none">
+    <div class="section-title">Registro de Jornada</div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p class="footer-text">«  Cada passo é uma história que só você pode contar  »</p>
+  </footer>
+</div>
+
+<!-- CELEBRATION -->
+<div class="celebration hidden" id="celebration">
+  <div class="celebration-box">
+    <div class="celebration-icon" id="cel-icon">🏆</div>
+    <div class="celebration-title">Missão Cumprida!</div>
+    <div class="celebration-sub" id="cel-sub">Você completou mais uma aventura</div>
+    <div class="celebration-xp" id="cel-xp">+50 XP</div>
+    <button class="btn-continue" onclick="closeCelebration()">CONTINUAR JORNADA</button>
+  </div>
+</div>
+
+<script>
+const MISSIONS = [
+  // SOLO - Contemplação
+  { title: "O Pôr do Sol em Silêncio", quote: "Não existe horário errado para parar e olhar.", desc: "Encontre um lugar ao ar livre e assista o pôr do sol sem usar o celular. Nenhuma foto, nenhuma mensagem. Apenas você e o céu se transformando.", type: "solo", diff: 2, reward: "Uma memória que não cabe em tela", icon: "🌅", xp: 40 },
+  { title: "O Mapa do Desconhecido", quote: "Toda rua tem um segredo esperando.", desc: "Saia de casa e escolha um caminho que você nunca andou. Caminhe por pelo menos 30 minutos sem GPS, só seguindo sua intuição.", type: "solo", diff: 3, reward: "Um lugar novo no seu mundo", icon: "🗺️", xp: 60 },
+  { title: "Carta Para o Futuro", quote: "Quem você será em 10 anos vai querer ler isso.", desc: "Escreva uma carta à mão para você mesmo daqui a 5 anos. Fale sobre seus medos, sonhos, e o que você acha que vai mudar. Guarde em algum lugar especial.", type: "solo", diff: 2, reward: "Uma janela para o tempo", icon: "✉️", xp: 45 },
+  { title: "O Sabor Desconhecido", quote: "Seu paladar guarda memórias que você nem imagina.", desc: "Vá a um mercado ou restaurante e peça algo que você nunca comeu antes — sem pesquisar o que é primeiro. Apenas confie.", type: "solo", diff: 2, reward: "Uma nova favorita (talvez)", icon: "🍜", xp: 35 },
+  { title: "Vigília da Madrugada", quote: "O mundo entre 3h e 5h pertence a poucos.", desc: "Acorde antes do amanhecer e observe o momento exato em que o céu começa a clarear. Leve um cobertor, uma bebida quente, e apenas esteja presente.", type: "solo", diff: 4, reward: "Um silêncio que dura o dia inteiro", icon: "🌙", xp: 70 },
+  { title: "A Arte Às Cegas", quote: "Perfeição é o inimigo da alma.", desc: "Pegue papel e caneta e desenhe algo — uma paisagem, um rosto, um sentimento — sem tirar a caneta do papel em momento algum. Não apague nada.", type: "solo", diff: 1, reward: "Uma obra única e estranhamente bonita", icon: "🎨", xp: 30 },
+  { title: "Testemunha da Chuva", quote: "Chuva não é interrupção, é convite.", desc: "Na próxima vez que chover, saia por pelo menos 15 minutos sem guarda-chuva. Ande devagar. Sinta a temperatura. Observe como o mundo muda de cheiro.", type: "solo", diff: 3, reward: "A sensação de estar vivo de verdade", icon: "🌧️", xp: 55 },
+  { title: "O Livro Aleatório", quote: "Às vezes o universo cuida da sua lista de leitura.", desc: "Vá a uma biblioteca ou livraria, feche os olhos, pegue um livro aleatório e leia as primeiras 20 páginas sem julgar. Se puder, termine.", type: "solo", diff: 2, reward: "Uma história que você não teria escolhido", icon: "📚", xp: 40 },
+  { title: "Diário Silencioso", quote: "Palavras que ficam na cabeça pesam mais do que as escritas.", desc: "Por uma hora, escreva tudo o que pensar — sem parar, sem corrigir, sem reler. Deixe a mente fluir pelo papel.", type: "solo", diff: 2, reward: "Clareza que não tem outro preço", icon: "📖", xp: 35 },
+  { title: "O Último Raio", quote: "Cada noite é uma despedida.", desc: "Encontre um lugar alto ou aberto e observe o céu por 10 minutos após o sol se pôr — quando o céu ainda guarda cor mas as estrelas já começam a aparecer.", type: "solo", diff: 2, reward: "O azul mais bonito que existe", icon: "🌆", xp: 40 },
+
+  // SOLO - Desafio
+  { title: "Um Dia Sem Reclamação", quote: "A língua molda o mundo ao redor.", desc: "Durante um dia inteiro, proíba-se de reclamar de qualquer coisa — tempo, trânsito, pessoas, comida. Substitua cada reclamação por uma observação neutra.", type: "solo", diff: 5, reward: "Uma perspectiva que muda tudo", icon: "🤐", xp: 90 },
+  { title: "A Conversa Incomum", quote: "Todo estranho carrega uma vida que você nunca imaginou.", desc: "Inicie uma conversa genuína com um desconhecido — pode ser um vendedor, um idoso em um banco, alguém num ponto de ônibus. Faça pelo menos uma pergunta sobre a vida dele.", type: "solo", diff: 4, reward: "Uma história que ninguém mais vai ouvir", icon: "🗣️", xp: 65 },
+  { title: "Nenhum Espelho Por Um Dia", quote: "Você é mais do que seu reflexo.", desc: "Passe um dia inteiro sem se olhar no espelho. Nenhuma selfie, nenhuma câmera invertida. Observe como isso afeta sua autoconfiança.", type: "solo", diff: 3, reward: "Uma nova relação com você mesmo", icon: "🪞", xp: 50 },
+  { title: "O Telefone Silenciado", quote: "Presença é o presente mais raro.", desc: "Passe uma tarde (pelo menos 4 horas) com o celular completamente desligado. Veja o que sua mente faz quando não tem para onde fugir.", type: "solo", diff: 4, reward: "Sua atenção de volta", icon: "📵", xp: 70 },
+  { title: "A Dança Sem Audiência", quote: "Dançar sem que ninguém veja revela quem você realmente é.", desc: "Reserve 10 minutos em um cômodo sozinho, coloque uma música que você ama e dance sem parar de se monitorar. Sem pose, sem técnica, sem vergonha.", type: "solo", diff: 3, reward: "Uma leveza inesperada", icon: "💃", xp: 45 },
+  { title: "Voluntário Por Um Dia", quote: "Dar tempo é mais valioso que dar dinheiro.", desc: "Encontre uma causa local — ONG, abrigo, horta comunitária — e ofereça pelo menos 3 horas do seu tempo sem nada em troca.", type: "solo", diff: 3, reward: "Uma perspectiva que humilha e eleva ao mesmo tempo", icon: "🤝", xp: 80 },
+
+  // SOLO - Conhecimento
+  { title: "O Documentário Desconfortável", quote: "Conforto é inimigo do crescimento.", desc: "Assista a um documentário sobre um tema que você evita ou que te incomoda — política, morte, desigualdade, natureza violenta. Tente entender, não apenas tolerar.", type: "solo", diff: 3, reward: "Uma opinião mais fundamentada", icon: "🎬", xp: 50 },
+  { title: "Aprenda Algo Inútil", quote: "O conhecimento inútil é o mais livre de todos.", desc: "Passe 2 horas aprendendo algo completamente inútil para sua vida prática: origami avançado, nós de marinheiro, xadrez, código Morse, tricô.", type: "solo", diff: 2, reward: "Uma habilidade que só você tem", icon: "🧩", xp: 40 },
+  { title: "O Museu Silencioso", quote: "Arte precisa de silêncio para falar.", desc: "Visite um museu, galeria ou exposição gratuita. Escolha uma obra e fique olhando para ela por pelo menos 5 minutos sem se mover, tentando entendê-la.", type: "solo", diff: 2, reward: "Uma linguagem que você começa a entender", icon: "🏛️", xp: 45 },
+  { title: "Mapeie Sua Cidade", quote: "Você vive aqui. Mas você realmente conhece?", desc: "Pesquise a história do bairro ou cidade onde você mora. Descubra quem morou aqui antes, o que existia, o que foi destruído. Caminhe reconhecendo.", type: "solo", diff: 2, reward: "Raízes onde antes havia asfalto", icon: "🏙️", xp: 45 },
+
+  // DUO - Conexão
+  { title: "A Pergunta Proibida", quote: "Amigos de verdade suportam qualquer resposta.", desc: "Com alguém de confiança, se revezem fazendo perguntas que normalmente evitam: medos profundos, arrependimentos, sonhos secretos. Sem julgamento, só escuta.", type: "duo", diff: 4, reward: "Um vínculo que vai além do comum", icon: "🔑", xp: 75 },
+  { title: "Picnic Sem Destino", quote: "O melhor plano é o que ninguém fez.", desc: "Preparem lanches simples, sentem em algum lugar ao ar livre — parque, praça, jardim — sem celular e sem pauta. Apenas estejam juntos.", type: "duo", diff: 1, reward: "Uma tarde que vai virar história", icon: "🧺", xp: 35 },
+  { title: "Troquem Playlists", quote: "Música revela o que as palavras escondem.", desc: "Cada um cria uma playlist de 10 músicas que define quem é. Troquem e escutem a do outro completamente, depois conversem sobre cada escolha.", type: "duo", diff: 2, reward: "Um mapa sonoro da alma alheia", icon: "🎵", xp: 40 },
+  { title: "O Jantar às Cegas", quote: "Comer juntos é o ritual mais antigo da humanidade.", desc: "Um de vocês prepara ou escolhe a refeição; o outro come sem saber o que é até terminar. Nenhum spoiler. Depois troquem os papéis.", type: "duo", diff: 3, reward: "Confiança temperada com surpresa", icon: "🍽️", xp: 55 },
+  { title: "Fotografar o Mesmo Lugar", quote: "Dois olhares, dois mundos.", desc: "Vão juntos a um mesmo lugar e cada um fotografa o que acha interessante sem combinar. Depois comparem: o que cada um viu que o outro ignorou?", type: "duo", diff: 2, reward: "A prova de que a realidade é plural", icon: "📷", xp: 40 },
+  { title: "A Carta Trocada", quote: "Escrito tem peso diferente do falado.", desc: "Cada um escreve uma carta à mão para o outro, sobre o que significa essa amizade ou relação. Troquem ao mesmo tempo e leiam na presença um do outro.", type: "duo", diff: 3, reward: "Palavras que ficam para sempre", icon: "💌", xp: 60 },
+  { title: "Ensinem Um ao Outro", quote: "Ensinar é a melhor forma de aprender.", desc: "Cada um ensina ao outro uma habilidade que domina — cozinhar algo, tocar um acorde, meditar, dobrar origami, o que for. Pelo menos 30 min cada.", type: "duo", diff: 3, reward: "Duas habilidades pelo preço de uma tarde", icon: "🎓", xp: 65 },
+  { title: "O Telescópio Improvisado", quote: "O universo está esperando.", desc: "Numa noite de céu limpo, saiam da cidade (ou vão para o lugar mais escuro que conseguirem) e passem 1h olhando as estrelas. Identifiquem constelações com um app.", type: "duo", diff: 3, reward: "A perspectiva que nenhuma tela oferece", icon: "🌟", xp: 65 },
+  { title: "A Maratona de Memórias", quote: "Rir do passado é curar o presente.", desc: "Sentem juntos e compartilhem memórias antigas — fotos antigas, histórias esquecidas, os melhores e piores momentos que viveram. Sem pressa.", type: "duo", diff: 1, reward: "Um arquivo vivo da vida compartilhada", icon: "📸", xp: 30 },
+
+  // DUO - Aventura
+  { title: "A Trilha Desconhecida", quote: "A natureza não tem spoiler.", desc: "Encontrem uma trilha que nenhum de vocês fez antes e façam juntos. Sem celular durante o percurso, apenas o que os olhos alcançam.", type: "duo", diff: 3, reward: "Cansaço do tipo que faz bem", icon: "🥾", xp: 60 },
+  { title: "O Projeto Abandonado", quote: "Toda cidade guarda suas cicatrizes.", desc: "Pesquisem um lugar histórico, abandonado ou pouco visitado perto de vocês e façam uma visita. Documentem, respeitem o espaço, aprendam o que houve ali.", type: "duo", diff: 4, reward: "Uma história que poucos sabem contar", icon: "🏚️", xp: 70 },
+  { title: "Trabalho Voluntário Juntos", quote: "Solidariedade compartilhada é o dobro do dobro.", desc: "Escolham juntos um serviço voluntário — ajudar um vizinho idoso, limpar um espaço público, apoiar um abrigo animal — e realizem durante uma manhã.", type: "duo", diff: 3, reward: "Um dia que valeu dois", icon: "🌱", xp: 80 },
+];
+
+let state = {
+  xp: 0,
+  done: 0,
+  streak: 0,
+  lastDate: null,
+  history: [],
+  currentMission: null,
+  completedIds: []
+};
+
+function loadState() {
+  const saved = localStorage.getItem('grimorio-state');
+  if (saved) {
+    try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
+  }
+}
+
+function saveState() {
+  localStorage.setItem('grimorio-state', JSON.stringify(state));
+}
+
+function randomMission() {
+  const available = MISSIONS.filter((_,i) => !state.completedIds.includes(i));
+  if (available.length === 0) {
+    state.completedIds = [];
+    return MISSIONS[Math.floor(Math.random() * MISSIONS.length)];
+  }
+  const idx = MISSIONS.indexOf(available[Math.floor(Math.random() * available.length)]);
+  return { ...MISSIONS[idx], _idx: idx };
+}
+
+function renderMission(m) {
+  if (!m) return;
+  state.currentMission = m;
+
+  const badge = document.getElementById('mission-badge');
+  badge.textContent = m.type === 'solo' ? '⚔ Solo' : '⚔ Dupla';
+  badge.className = 'mission-type-badge ' + (m.type === 'solo' ? 'badge-solo' : 'badge-duo');
+
+  const diff = document.getElementById('mission-diff');
+  diff.innerHTML = Array.from({length: 5}, (_,i) =>
+    `<div class="diff-dot ${i < m.diff ? 'filled' : ''}"></div>`
+  ).join('');
+
+  document.getElementById('mission-title').textContent = m.title;
+  document.getElementById('mission-quote').textContent = m.quote;
+  document.getElementById('mission-desc').textContent = m.desc;
+  document.getElementById('reward-icon').textContent = m.icon;
+  document.getElementById('reward-text').textContent = m.reward;
+  document.getElementById('reward-xp').textContent = `+${m.xp} XP`;
+
+  // Reanimate card
+  const card = document.getElementById('mission-card');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'cardAppear 0.6s ease-out';
+}
+
+function updateStats() {
+  document.getElementById('stat-xp').textContent = state.xp;
+  document.getElementById('stat-done').textContent = state.done;
+  document.getElementById('stat-streak').textContent = state.streak;
+}
+
+function newMission() {
+  const m = randomMission();
+  renderMission(m);
+}
+
+function completeMission() {
+  if (!state.currentMission) return;
+  const m = state.currentMission;
+
+  // Update state
+  state.xp += m.xp;
+  state.done += 1;
+
+  const today = new Date().toDateString();
+  if (state.lastDate === today) {
+    // already counted today
+  } else if (state.lastDate === new Date(Date.now() - 86400000).toDateString()) {
+    state.streak += 1;
+  } else {
+    state.streak = 1;
+  }
+  state.lastDate = today;
+
+  if (m._idx !== undefined) state.completedIds.push(m._idx);
+
+  state.history.unshift({
+    title: m.title,
+    icon: m.icon,
+    xp: m.xp,
+    date: new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'short'})
+  });
+  if (state.history.length > 10) state.history.pop();
+
+  saveState();
+  updateStats();
+
+  // Show celebration
+  document.getElementById('cel-sub').textContent = m.reward;
+  document.getElementById('cel-xp').textContent = `+${m.xp} XP`;
+  document.getElementById('cel-icon').textContent = m.icon;
+  document.getElementById('celebration').classList.remove('hidden');
+}
+
+function closeCelebration() {
+  document.getElementById('celebration').classList.add('hidden');
+  newMission();
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if (state.history.length === 0) {
+    list.innerHTML = '<div style="color:var(--mist);font-family:IM Fell English,serif;font-style:italic;font-size:13px;padding:10px">Nenhuma missão concluída ainda...</div>';
+    return;
+  }
+  list.innerHTML = state.history.map(h => `
+    <div class="history-item">
+      <div class="history-icon">${h.icon}</div>
+      <div class="history-info">
+        <div class="history-name">${h.title}</div>
+        <div class="history-date">${h.date}</div>
+      </div>
+      <div class="history-xp">+${h.xp}</div>
+    </div>
+  `).join('');
+}
+
+function toggleHistory() {
+  const section = document.getElementById('history-section');
+  if (section.style.display === 'none') {
+    section.style.display = 'block';
+    renderHistory();
+  } else {
+    section.style.display = 'none';
+  }
+}
+
+// Init
+loadState();
+updateStats();
+const first = randomMission();
+renderMission(first);
+</script>
+</body>
+</html>
